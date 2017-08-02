@@ -6,8 +6,10 @@ import java.util.List;
 import java.util.logging.Level;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -33,9 +35,13 @@ public class GUI implements Listener{
 	public static Plugin plugin = Bukkit.getServer().getPluginManager().getPlugin("CrazyAuctions");
 	
 	public static void openShop(Player player, Shop sell, Category cat, int page){
-		Methods.updateAuction();
+		Methods.updateAuction(player.getWorld());
 		FileConfiguration config = Main.settings.getConfig();
-		FileConfiguration data = Main.settings.getData();
+		ConfigurationSection data = Main.settings.getWorldConfig(player.getWorld().getName());
+		if (data == null) {
+			player.sendMessage(ChatColor.RED + "Auctions isn't enabled in this world!");
+			return;
+		}
 		List<ItemStack> items = new ArrayList<ItemStack>();
 		List<Integer> ID = new ArrayList<Integer>();
 		List<Integer> Id = new ArrayList<Integer>();
@@ -57,7 +63,7 @@ public class GUI implements Listener{
 							String seller = data.getString("Items."+i+".Seller");
 							String topbidder = data.getString("Items."+i+".TopBidder");
 							for(String l : config.getStringList("Settings.GUISettings.Bidding")){
-								lore.add(l.replaceAll("%TopBid%", Methods.getPrice(i, false)).replaceAll("%topbid%", Methods.getPrice(i, false))
+								lore.add(l.replaceAll("%TopBid%", Methods.getPrice(data, i, false)).replaceAll("%topbid%", Methods.getPrice(data, i, false))
 										.replaceAll("%Seller%", seller).replaceAll("%seller%", seller)
 										.replaceAll("%TopBidder%", topbidder).replaceAll("%topbidder%", topbidder)
 										.replaceAll("%Time%", Methods.convertToTime(data.getLong("Items."+i+".Time-Till-Expire"))).replaceAll("%time%", Methods.convertToTime(data.getLong("Items."+i+".Time-Till-Expire"))));
@@ -68,7 +74,7 @@ public class GUI implements Listener{
 					}else{
 						if(sell==Shop.SELL){
 							for(String l : config.getStringList("Settings.GUISettings.SellingItemLore")){
-								lore.add(l.replaceAll("%Price%", Methods.getPrice(i, false)).replaceAll("%price%", Methods.getPrice(i, false))
+								lore.add(l.replaceAll("%Price%", Methods.getPrice(data, i, false)).replaceAll("%price%", Methods.getPrice(data, i, false))
 										.replaceAll("%Seller%", data.getString("Items."+i+".Seller")).replaceAll("%seller%", data.getString("Items."+i+".Seller")));
 							}
 							items.add(Methods.addLore(data.getItemStack("Items."+i+".Item").clone(), lore));
@@ -127,7 +133,7 @@ public class GUI implements Listener{
 	}
 	
 	public static void openCateories(Player player, Shop shop){
-		Methods.updateAuction();
+		Methods.updateAuction(player.getWorld());
 		FileConfiguration config = Main.settings.getConfig();
 		Inventory inv = Bukkit.createInventory(null, 54, Methods.color(config.getString("Settings.Categories")));
 		List<String> options = new ArrayList<String>();
@@ -156,9 +162,13 @@ public class GUI implements Listener{
 	}
 	
 	public static void openPlayersCurrentList(Player player, int page){
-		Methods.updateAuction();
+		Methods.updateAuction(player.getWorld());
 		FileConfiguration config = Main.settings.getConfig();
-		FileConfiguration data = Main.settings.getData();
+		ConfigurationSection data = Main.settings.getWorldConfig(player.getWorld().getName());
+		if (data == null) {
+			player.sendMessage(ChatColor.RED + "Auctions isn't enabled in this world!");
+			return;
+		}
 		List<ItemStack> items = new ArrayList<ItemStack>();
 		List<Integer> ID = new ArrayList<Integer>();
 		List<Integer> Id = new ArrayList<Integer>();
@@ -185,7 +195,7 @@ public class GUI implements Listener{
 				if(data.getString("Items."+i+".Seller").equalsIgnoreCase(player.getName())){
 					List<String> lore = new ArrayList<String>();
 					for(String l : config.getStringList("Settings.GUISettings.CurrentLore")){
-						lore.add(l.replaceAll("%Price%", Methods.getPrice(i, false)).replaceAll("%price%", Methods.getPrice(i, false))
+						lore.add(l.replaceAll("%Price%", Methods.getPrice(data, i, false)).replaceAll("%price%", Methods.getPrice(data, i, false))
 								.replaceAll("%Time%", Methods.convertToTime(data.getLong("Items."+i+".Time-Till-Expire"))).replaceAll("%time%", Methods.convertToTime(data.getLong("Items."+i+".Time-Till-Expire"))));
 					}
 					items.add(Methods.addLore(data.getItemStack("Items."+i+".Item").clone(), lore));
@@ -205,9 +215,13 @@ public class GUI implements Listener{
 	}
 	
 	public static void openPlayersExpiredList(Player player, int page){
-		Methods.updateAuction();
+		Methods.updateAuction(player.getWorld());
 		FileConfiguration config = Main.settings.getConfig();
-		FileConfiguration data = Main.settings.getData();
+		ConfigurationSection data = Main.settings.getWorldConfig(player.getWorld().getName());
+		if (data == null) {
+			player.sendMessage(ChatColor.RED + "Auctions isn't enabled in this world!");
+			return;
+		}
 		List<ItemStack> items = new ArrayList<ItemStack>();
 		List<Integer> ID = new ArrayList<Integer>();
 		List<Integer> Id = new ArrayList<Integer>();
@@ -216,7 +230,7 @@ public class GUI implements Listener{
 				if(data.getString("OutOfTime/Cancelled."+i+".Seller").equalsIgnoreCase(player.getName())){
 					List<String> lore = new ArrayList<String>();
 					for(String l : config.getStringList("Settings.GUISettings.Cancelled/ExpiredLore")){
-						lore.add(l.replaceAll("%Price%", Methods.getPrice(i, true)).replaceAll("%price%", Methods.getPrice(i, true))
+						lore.add(l.replaceAll("%Price%", Methods.getPrice(data, i, true)).replaceAll("%price%", Methods.getPrice(data, i, true))
 								.replaceAll("%Time%", Methods.convertToTime(data.getLong("OutOfTime/Cancelled."+i+".Full-Time"))).replaceAll("%time%", Methods.convertToTime(data.getLong("OutOfTime/Cancelled."+i+".Full-Time"))));
 					}
 					items.add(Methods.addLore(data.getItemStack("OutOfTime/Cancelled."+i+".Item").clone(), lore));
@@ -258,9 +272,13 @@ public class GUI implements Listener{
 	}
 	
 	public static void openBuying(Player player, String ID){
-		Methods.updateAuction();
+		Methods.updateAuction(player.getWorld());
 		FileConfiguration config = Main.settings.getConfig();
-		FileConfiguration data = Main.settings.getData();
+		ConfigurationSection data = Main.settings.getWorldConfig(player.getWorld().getName());
+		if (data == null) {
+			player.sendMessage(ChatColor.RED + "Auctions isn't enabled in this world!");
+			return;
+		}
 		FileConfiguration msg = Main.settings.getMsg();
 		if(!data.contains("Items."+ID)){
 			openShop(player, Shop.SELL, Cat.get(player), 1);
@@ -295,7 +313,7 @@ public class GUI implements Listener{
 		ItemStack item = data.getItemStack("Items."+ID+".Item");
 		List<String> lore = new ArrayList<String>();
 		for(String l : config.getStringList("Settings.GUISettings.SellingLore")){
-			lore.add(l.replaceAll("%Price%", Methods.getPrice(ID, false)).replaceAll("%price%", Methods.getPrice(ID, false))
+			lore.add(l.replaceAll("%Price%", Methods.getPrice(data, ID, false)).replaceAll("%price%", Methods.getPrice(data, ID, false))
 					.replaceAll("%Seller%", data.getString("Items."+ID+".Seller")).replaceAll("%seller%", data.getString("Items."+ID+".Seller")));
 		}
 		inv.setItem(4, Methods.addLore(item.clone(), lore));
@@ -304,9 +322,13 @@ public class GUI implements Listener{
 	}
 	
 	public static void openBidding(Player player, String ID){
-		Methods.updateAuction();
+		Methods.updateAuction(player.getWorld());
 		FileConfiguration config = Main.settings.getConfig();
-		FileConfiguration data = Main.settings.getData();
+		ConfigurationSection data = Main.settings.getWorldConfig(player.getWorld().getName());
+		if (data == null) {
+			player.sendMessage(ChatColor.RED + "Auctions isn't enabled in this world!");
+			return;
+		}
 		FileConfiguration msg = Main.settings.getMsg();
 		if(!data.contains("Items."+ID)){
 			openShop(player, Shop.BID, Cat.get(player), 1);
@@ -326,15 +348,22 @@ public class GUI implements Listener{
 		inv.setItem(17, Methods.makeItem("160:14", 1, "&c-1"));
 		inv.setItem(22, Methods.makeItem(config.getString("Settings.GUISettings.OtherSettings.Bid.Item"), 1, config.getString("Settings.GUISettings.OtherSettings.Bid.Name"), 
 				config.getStringList("Settings.GUISettings.OtherSettings.Bid.Lore")));
-		
-		inv.setItem(4, getBiddingItem(player, ID));
+
+		ItemStack bidItem = getBiddingItem(player, BiddingID.get(player));
+		if (bidItem == null)
+			return;
+		inv.setItem(4, bidItem);
 		player.openInventory(inv);
 	}
 	
 	public static void openViewer(Player player, String other, int page){
-		Methods.updateAuction();
+		Methods.updateAuction(player.getWorld());
 		FileConfiguration config = Main.settings.getConfig();
-		FileConfiguration data = Main.settings.getData();
+		ConfigurationSection data = Main.settings.getWorldConfig(player.getWorld().getName());
+		if (data == null) {
+			player.sendMessage(ChatColor.RED + "Auctions isn't enabled in this world!");
+			return;
+		}
 		List<ItemStack> items = new ArrayList<ItemStack>();
 		List<Integer> ID = new ArrayList<Integer>();
 		List<Integer> Id = new ArrayList<Integer>();
@@ -350,7 +379,7 @@ public class GUI implements Listener{
 						String seller = data.getString("Items."+i+".Seller");
 						String topbidder = data.getString("Items."+i+".TopBidder");
 						for(String l : config.getStringList("Settings.GUISettings.Bidding")){
-							lore.add(l.replaceAll("%TopBid%", Methods.getPrice(i, false)).replaceAll("%topbid%", Methods.getPrice(i, false))
+							lore.add(l.replaceAll("%TopBid%", Methods.getPrice(data, i, false)).replaceAll("%topbid%", Methods.getPrice(data, i, false))
 									.replaceAll("%Seller%", seller).replaceAll("%seller%", seller)
 									.replaceAll("%TopBidder%", topbidder).replaceAll("%topbidder%", topbidder)
 									.replaceAll("%Time%", Methods.convertToTime(data.getLong("Items."+i+".Time-Till-Expire"))).replaceAll("%time%", Methods.convertToTime(data.getLong("Items."+i+".Time-Till-Expire"))));
@@ -359,7 +388,7 @@ public class GUI implements Listener{
 						ID.add(data.getInt("Items."+i+".StoreID"));
 					}else{
 						for(String l : config.getStringList("Settings.GUISettings.SellingItemLore")){
-							lore.add(l.replaceAll("%Price%", Methods.getPrice(i, false)).replaceAll("%price%", Methods.getPrice(i, false))
+							lore.add(l.replaceAll("%Price%", Methods.getPrice(data, i, false)).replaceAll("%price%", Methods.getPrice(data, i, false))
 									.replaceAll("%Seller%", data.getString("Items."+i+".Seller")).replaceAll("%seller%", data.getString("Items."+i+".Seller")));
 						}
 						items.add(Methods.addLore(data.getItemStack("Items."+i+".Item").clone(), lore));
@@ -404,12 +433,17 @@ public class GUI implements Listener{
 		String id = config.getString("Settings.GUISettings.OtherSettings.Bidding.Item");
 		String name = config.getString("Settings.GUISettings.OtherSettings.Bidding.Name");
 		ItemStack item = new ItemStack(Material.AIR);
+		ConfigurationSection data = Main.settings.getWorldConfig(player.getWorld().getName());
+		if (data == null) {
+			player.sendMessage(ChatColor.RED + "Auctions isn't enabled in this world!");
+			return null;
+		}
 		int bid = Bidding.get(player);
 		if(config.contains("Settings.GUISettings.OtherSettings.Bidding.Lore")){
 			List<String> lore = new ArrayList<String>();
 			for(String l : config.getStringList("Settings.GUISettings.OtherSettings.Bidding.Lore")){
 				lore.add(l.replaceAll("%Bid%", bid+"").replaceAll("%bid%", bid+"")
-						.replaceAll("%TopBid%", Methods.getPrice(ID, false)).replaceAll("%topbid%", Methods.getPrice(ID, false)));
+						.replaceAll("%TopBid%", Methods.getPrice(data, ID, false)).replaceAll("%topbid%", Methods.getPrice(data, ID, false)));
 			}
 			item = Methods.makeItem(id, 1, name, lore);
 		}else{
@@ -420,13 +454,17 @@ public class GUI implements Listener{
 	
 	public static ItemStack getBiddingItem(Player player, String ID){
 		FileConfiguration config = Main.settings.getConfig();
-		FileConfiguration data = Main.settings.getData();
+		ConfigurationSection data = Main.settings.getWorldConfig(player.getWorld().getName());
+		if (data == null) {
+			player.sendMessage(ChatColor.RED + "Auctions isn't enabled in this world!");
+			return null;
+		}
 		String seller = data.getString("Items."+ID+".Seller");
 		String topbidder = data.getString("Items."+ID+".TopBidder");
 		ItemStack item = data.getItemStack("Items."+ID+".Item");
 		List<String> lore = new ArrayList<String>();
 		for(String l : config.getStringList("Settings.GUISettings.Bidding")){
-			lore.add(l.replaceAll("%TopBid%", Methods.getPrice(ID, false)).replaceAll("%topbid%", Methods.getPrice(ID, false))
+			lore.add(l.replaceAll("%TopBid%", Methods.getPrice(data, ID, false)).replaceAll("%topbid%", Methods.getPrice(data, ID, false))
 					.replaceAll("%Seller%", seller).replaceAll("%seller%", seller)
 					.replaceAll("%TopBidder%", topbidder).replaceAll("%topbidder%", topbidder)
 					.replaceAll("%Time%", Methods.convertToTime(data.getLong("Items."+ID+".Time-Till-Expire"))).replaceAll("%time%", Methods.convertToTime(data.getLong("Items."+ID+".Time-Till-Expire"))));
@@ -451,9 +489,15 @@ public class GUI implements Listener{
 	@EventHandler
 	public void onInvClick(InventoryClickEvent e){
 		FileConfiguration config = Main.settings.getConfig();
-		FileConfiguration data = Main.settings.getData();
+		if (!(e.getWhoClicked() instanceof Player))
+			return;
+		Player player = (Player) e.getWhoClicked();
+		ConfigurationSection data = Main.settings.getWorldConfig(player.getWorld().getName());
+		if (data == null) {
+			player.sendMessage(ChatColor.RED + "Auctions isn't enabled in this world!");
+			return;
+		}
 		FileConfiguration msg = Main.settings.getMsg();
-		Player player = (Player)e.getWhoClicked();
 		final Inventory inv = e.getInventory();
 		if(inv!=null){
 			if(inv.getName().contains(Methods.color(config.getString("Settings.Categories")))){
@@ -518,28 +562,40 @@ public class GUI implements Listener{
 								}
 								if(item.getItemMeta().getDisplayName().equals(Methods.color("&a+1"))){
 									Bidding.put(player, (Bidding.get(player)+1));
-									inv.setItem(4, getBiddingItem(player, BiddingID.get(player)));
+									ItemStack bidItem = getBiddingItem(player, BiddingID.get(player));
+									if (bidItem == null)
+										return;
+									inv.setItem(4, bidItem);
 									inv.setItem(13, getBiddingGlass(player, BiddingID.get(player)));
 									playClick(player);
 									return;
 								}
 								if(item.getItemMeta().getDisplayName().equals(Methods.color("&a+10"))){
 									Bidding.put(player, (Bidding.get(player)+10));
-									inv.setItem(4, getBiddingItem(player, BiddingID.get(player)));
+									ItemStack bidItem = getBiddingItem(player, BiddingID.get(player));
+									if (bidItem == null)
+										return;
+									inv.setItem(4, bidItem);
 									inv.setItem(13, getBiddingGlass(player, BiddingID.get(player)));
 									playClick(player);
 									return;
 								}
 								if(item.getItemMeta().getDisplayName().equals(Methods.color("&a+100"))){
 									Bidding.put(player, (Bidding.get(player)+100));
-									inv.setItem(4, getBiddingItem(player, BiddingID.get(player)));
+									ItemStack bidItem = getBiddingItem(player, BiddingID.get(player));
+									if (bidItem == null)
+										return;
+									inv.setItem(4, bidItem);
 									inv.setItem(13, getBiddingGlass(player, BiddingID.get(player)));
 									playClick(player);
 									return;
 								}
 								if(item.getItemMeta().getDisplayName().equals(Methods.color("&a+1000"))){
 									Bidding.put(player, (Bidding.get(player)+1000));
-									inv.setItem(4, getBiddingItem(player, BiddingID.get(player)));
+									ItemStack bidItem = getBiddingItem(player, BiddingID.get(player));
+									if (bidItem == null)
+										return;
+									inv.setItem(4, bidItem);
 									inv.setItem(13, getBiddingGlass(player, BiddingID.get(player)));
 									playClick(player);
 									return;
@@ -548,7 +604,10 @@ public class GUI implements Listener{
 									int bid = Bidding.get(player)-1;
 									if(bid<0)bid=0;
 									Bidding.put(player, bid);
-									inv.setItem(4, getBiddingItem(player, BiddingID.get(player)));
+									ItemStack bidItem = getBiddingItem(player, BiddingID.get(player));
+									if (bidItem == null)
+										return;
+									inv.setItem(4, bidItem);
 									inv.setItem(13, getBiddingGlass(player, BiddingID.get(player)));
 									playClick(player);
 									return;
@@ -557,7 +616,10 @@ public class GUI implements Listener{
 									int bid = Bidding.get(player)-10;
 									if(bid<0)bid=0;
 									Bidding.put(player, bid);
-									inv.setItem(4, getBiddingItem(player, BiddingID.get(player)));
+									ItemStack bidItem = getBiddingItem(player, BiddingID.get(player));
+									if (bidItem == null)
+										return;
+									inv.setItem(4, bidItem);
 									inv.setItem(13, getBiddingGlass(player, BiddingID.get(player)));
 									playClick(player);
 									return;
@@ -566,7 +628,10 @@ public class GUI implements Listener{
 									int bid = Bidding.get(player)-100;
 									if(bid<0)bid=0;
 									Bidding.put(player, bid);
-									inv.setItem(4, getBiddingItem(player, BiddingID.get(player)));
+									ItemStack bidItem = getBiddingItem(player, BiddingID.get(player));
+									if (bidItem == null)
+										return;
+									inv.setItem(4, bidItem);
 									inv.setItem(13, getBiddingGlass(player, BiddingID.get(player)));
 									playClick(player);
 									return;
@@ -575,7 +640,10 @@ public class GUI implements Listener{
 									int bid = Bidding.get(player)-1000;
 									if(bid<0)bid=0;
 									Bidding.put(player, bid);
-									inv.setItem(4, getBiddingItem(player, BiddingID.get(player)));
+									ItemStack bidItem = getBiddingItem(player, BiddingID.get(player));
+									if (bidItem == null)
+										return;
+									inv.setItem(4, bidItem);
 									inv.setItem(13, getBiddingGlass(player, BiddingID.get(player)));
 									playClick(player);
 									return;
@@ -594,14 +662,14 @@ public class GUI implements Listener{
 						if(item.hasItemMeta()){
 							if(item.getItemMeta().hasDisplayName()){
 								if(item.getItemMeta().getDisplayName().equals(Methods.color(config.getString("Settings.GUISettings.OtherSettings.NextPage.Name")))){
-									Methods.updateAuction();
+									Methods.updateAuction(player.getWorld());
 									int page = Integer.parseInt(inv.getName().split("#")[1]);
 									openShop(player, Type.get(player), Cat.get(player), page+1);
 									playClick(player);
 									return;
 								}
 								if(item.getItemMeta().getDisplayName().equals(Methods.color(config.getString("Settings.GUISettings.OtherSettings.PreviousPage.Name")))){
-									Methods.updateAuction();
+									Methods.updateAuction(player.getWorld());
 									int page = Integer.parseInt(inv.getName().split("#")[1]);
 									if(page==1)page++;
 									openShop(player, Type.get(player), Cat.get(player), page-1);
@@ -609,7 +677,7 @@ public class GUI implements Listener{
 									return;
 								}
 								if(item.getItemMeta().getDisplayName().equals(Methods.color(config.getString("Settings.GUISettings.OtherSettings.Refesh.Name")))){
-									Methods.updateAuction();
+									Methods.updateAuction(player.getWorld());
 									int page = Integer.parseInt(inv.getName().split("#")[1]);
 									openShop(player, Type.get(player), Cat.get(player), page);
 									playClick(player);
@@ -800,11 +868,11 @@ public class GUI implements Listener{
 									CurrencyManager.removeMoney(player, cost);
 									CurrencyManager.addMoney(Methods.getOfflinePlayer(seller), cost);
 									player.sendMessage(Methods.getPrefix()+Methods.color(msg.getString("Messages.Bought-Item")
-											.replaceAll("%Price%", Methods.getPrice(ID, false)).replaceAll("%price%", Methods.getPrice(ID, false))));
+											.replaceAll("%Price%", Methods.getPrice(data, ID, false)).replaceAll("%price%", Methods.getPrice(data, ID, false))));
 									if(Methods.isOnline(seller)){
 										Player sell = Methods.getPlayer(seller);
 										sell.sendMessage(Methods.getPrefix()+Methods.color(msg.getString("Messages.Player-Bought-Item")
-												.replaceAll("%Price%", Methods.getPrice(ID, false)).replaceAll("%price%", Methods.getPrice(ID, false))
+												.replaceAll("%Price%", Methods.getPrice(data, ID, false)).replaceAll("%price%", Methods.getPrice(data, ID, false))
 												.replaceAll("%Player%", player.getName()).replaceAll("%player%", player.getName())));
 									}
 									ItemStack i = data.getItemStack("Items."+ID+".Item");
@@ -882,13 +950,13 @@ public class GUI implements Listener{
 						if(item.hasItemMeta()){
 							if(item.getItemMeta().hasDisplayName()){
 								if(item.getItemMeta().getDisplayName().equals(Methods.color(config.getString("Settings.GUISettings.OtherSettings.Back.Name")))){
-									Methods.updateAuction();
+									Methods.updateAuction(player.getWorld());
 									playClick(player);
 									openShop(player, Type.get(player), Cat.get(player), 1);
 									return;
 								}
 								if(item.getItemMeta().getDisplayName().equals(Methods.color(config.getString("Settings.GUISettings.OtherSettings.PreviousPage.Name")))){
-									Methods.updateAuction();
+									Methods.updateAuction(player.getWorld());
 									int page = Integer.parseInt(inv.getName().split("#")[1]);
 									if(page==1)page++;
 									playClick(player);
@@ -896,7 +964,7 @@ public class GUI implements Listener{
 									return;
 								}
 								if(item.getItemMeta().getDisplayName().equals(Methods.color(config.getString("Settings.GUISettings.OtherSettings.Return.Name")))){
-									Methods.updateAuction();
+									Methods.updateAuction(player.getWorld());
 									int page = Integer.parseInt(inv.getName().split("#")[1]);
 									if(data.contains("OutOfTime/Cancelled")){
 										for(String i : data.getConfigurationSection("OutOfTime/Cancelled").getKeys(false)){
@@ -918,7 +986,7 @@ public class GUI implements Listener{
 									return;
 								}
 								if(item.getItemMeta().getDisplayName().equals(Methods.color(config.getString("Settings.GUISettings.OtherSettings.NextPage.Name")))){
-									Methods.updateAuction();
+									Methods.updateAuction(player.getWorld());
 									int page = Integer.parseInt(inv.getName().split("#")[1]);
 									playClick(player);
 									openPlayersExpiredList(player, (page+1));

@@ -5,9 +5,11 @@ import java.util.ArrayList;
 import java.util.Random;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -32,7 +34,7 @@ public class Main extends JavaPlugin implements Listener{
 		Methods.hasUpdate();
 		Bukkit.getServer().getPluginManager().registerEvents(this, this);
 		Bukkit.getServer().getPluginManager().registerEvents(new GUI(), this);
-		Methods.updateAuction();
+		Bukkit.getServer().getWorlds().forEach(Methods::updateAuction);
 		startCheck();
 		if (!Vault.setupEconomy()){
 	   		saveDefaultConfig();
@@ -233,30 +235,35 @@ public class Main extends JavaPlugin implements Listener{
 						String seller = player.getName();
 						int num = 1;
 						Random r = new Random();
-						for(;settings.getData().contains("Items."+num);num++);
-						settings.getData().set("Items."+num+".Price", price);
-						settings.getData().set("Items."+num+".Seller", seller);
-						if(args[0].equalsIgnoreCase("Bid")){
-							settings.getData().set("Items."+num+".Time-Till-Expire", Methods.convertToMill(settings.getConfig().getString("Settings.Bid-Time")));
-						}else{
-							settings.getData().set("Items."+num+".Time-Till-Expire", Methods.convertToMill(settings.getConfig().getString("Settings.Sell-Time")));
+						ConfigurationSection data = settings.getWorldConfig(player.getWorld().getName());
+						if (data == null) {
+							player.sendMessage(ChatColor.RED + "Auctions isn't enabled in this world!");
+							return true;
 						}
-						settings.getData().set("Items."+num+".Full-Time", Methods.convertToMill(settings.getConfig().getString("Settings.Full-Expire-Time")));
-						int id = r.nextInt(999999);
+						for(;data.contains("Items."+num);num++);
+						data.set("Items."+num+".Price", price);
+						data.set("Items."+num+".Seller", seller);
+						if(args[0].equalsIgnoreCase("Bid")){
+							data.set("Items."+num+".Time-Till-Expire", Methods.convertToMill(settings.getConfig().getString("Settings.Bid-Time")));
+						}else{
+							data.set("Items."+num+".Time-Till-Expire", Methods.convertToMill(settings.getConfig().getString("Settings.Sell-Time")));
+						}
+						data.set("Items."+num+".Full-Time", Methods.convertToMill(settings.getConfig().getString("Settings.Full-Expire-Time")));
+						int id = r.nextInt(999999999);
 						// Runs 3x to check for same ID.
-						for(String i : settings.getData().getConfigurationSection("Items").getKeys(false))if(settings.getData().getInt("Items."+i+".StoreID")==id)id=r.nextInt(999999);
-						for(String i : settings.getData().getConfigurationSection("Items").getKeys(false))if(settings.getData().getInt("Items."+i+".StoreID")==id)id=r.nextInt(999999);
-						for(String i : settings.getData().getConfigurationSection("Items").getKeys(false))if(settings.getData().getInt("Items."+i+".StoreID")==id)id=r.nextInt(999999);
-						settings.getData().set("Items."+num+".StoreID", id);
+						for(String i : data.getConfigurationSection("Items").getKeys(false))if(data.getInt("Items."+i+".StoreID")==id)id=r.nextInt(999999);
+						for(String i : data.getConfigurationSection("Items").getKeys(false))if(data.getInt("Items."+i+".StoreID")==id)id=r.nextInt(999999);
+						for(String i : data.getConfigurationSection("Items").getKeys(false))if(data.getInt("Items."+i+".StoreID")==id)id=r.nextInt(999999);
+						data.set("Items."+num+".StoreID", id);
 						if(args[0].equalsIgnoreCase("Bid")){
-							settings.getData().set("Items."+num+".Biddable", true);
+							data.set("Items."+num+".Biddable", true);
 						}else{
-							settings.getData().set("Items."+num+".Biddable", false);
+							data.set("Items."+num+".Biddable", false);
 						}
-						settings.getData().set("Items."+num+".TopBidder", "None");
+						data.set("Items."+num+".TopBidder", "None");
 						ItemStack I = item.clone();
 						I.setAmount(amount);
-						settings.getData().set("Items."+num+".Item", I);
+						data.set("Items."+num+".Item", I);
 						settings.saveData();
 						player.sendMessage(Methods.getPrefix()+Methods.color(settings.getMsg().getString("Messages.Added-Item-To-Auction")
 								.replaceAll("%Price%", price+"").replaceAll("%price%", price+"")));
@@ -297,7 +304,7 @@ public class Main extends JavaPlugin implements Listener{
 		new BukkitRunnable(){
 			@Override
 			public void run() {
-				Methods.updateAuction();
+				Bukkit.getServer().getWorlds().forEach(Methods::updateAuction);
 			}
 		}.runTaskTimer(this, 20, 5*20);
 	}

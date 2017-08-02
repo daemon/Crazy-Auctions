@@ -4,9 +4,12 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
@@ -30,6 +33,12 @@ public class SettingsManager {
 	
 	FileConfiguration msg;
 	File mfile;
+
+	private final Map<String, ConfigurationSection> worldConfigMap = new HashMap<>();
+
+	public ConfigurationSection getWorldConfig(String worldName) {
+		return this.worldConfigMap.get(worldName);
+	}
 	
 	public void setup(Plugin p) {
 		if (!p.getDataFolder().exists()) {
@@ -59,6 +68,11 @@ public class SettingsManager {
          	}
 		}
 		data = YamlConfiguration.loadConfiguration(dfile);
+		ConfigurationSection worldGroups = this.data.getConfigurationSection("WorldGroups");
+		for (String key : worldGroups.getKeys(false)) {
+			ConfigurationSection worldConfig = worldGroups.getConfigurationSection(key);
+			worldConfig.getStringList("worlds").forEach(world -> this.worldConfigMap.put(world, worldConfig));
+		}
 		
 		mfile = new File(p.getDataFolder(), "Messages.yml");
 		if (!mfile.exists()) {
@@ -72,9 +86,7 @@ public class SettingsManager {
 		}
 		msg = YamlConfiguration.loadConfiguration(mfile);
 	}
-	public FileConfiguration getData() {
-		return data;
-	}
+
 	public FileConfiguration getMsg() {
 		return msg;
 	}

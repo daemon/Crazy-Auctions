@@ -10,12 +10,9 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
+import org.bukkit.*;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -376,8 +373,10 @@ public class Methods {
 		return false;
 	}
 	
-	public static void updateAuction(){
-		FileConfiguration data = Main.settings.getData();
+	public static void updateAuction(World world){
+		ConfigurationSection data = Main.settings.getWorldConfig(world.getName());
+		if (data == null)
+			return;
 		FileConfiguration msg = Main.settings.getMsg();
 		Calendar cal = Calendar.getInstance();
 		Calendar expireTime = Calendar.getInstance();
@@ -406,12 +405,12 @@ public class Methods {
 						if(Methods.isOnline(winner)){
 							Player player = Methods.getPlayer(winner);
 							player.sendMessage(Methods.getPrefix()+Methods.color(msg.getString("Messages.Win-Bidding")
-									.replaceAll("%Price%", getPrice(i, false)).replaceAll("%price%", getPrice(i, false))));
+									.replaceAll("%Price%", getPrice(data, i, false)).replaceAll("%price%", getPrice(data, i, false))));
 						}
 						if(Methods.isOnline(seller)){
 							Player player = Methods.getPlayer(seller);
 							player.sendMessage(Methods.getPrefix()+Methods.color(msg.getString("Messages.Someone-Won-Players-Bid")
-									.replaceAll("%Price%", getPrice(i, false)).replaceAll("%price%", getPrice(i, false))
+									.replaceAll("%Price%", getPrice(data, i, false)).replaceAll("%price%", getPrice(data, i, false))
 									.replaceAll("%Player%", winner).replaceAll("%player%", winner)));
 						}
 						data.set("OutOfTime/Cancelled."+num+".Seller", winner);
@@ -436,15 +435,15 @@ public class Methods {
 		Main.settings.saveData();
 	}
 	
-	public static String getPrice(String ID, Boolean Expired){
+	public static String getPrice(ConfigurationSection data, String ID, Boolean Expired){
 		Long price = 0L;
 		if(Expired){
-			if(Main.settings.getData().contains("OutOfTime/Cancelled."+ID+".Price")){
-				price = Main.settings.getData().getLong("OutOfTime/Cancelled."+ID+".Price");
+			if(data.contains("OutOfTime/Cancelled."+ID+".Price")){
+				price = data.getLong("OutOfTime/Cancelled."+ID+".Price");
 			}
 		}else{
-			if(Main.settings.getData().contains("Items."+ID+".Price")){
-				price = Main.settings.getData().getLong("Items."+ID+".Price");
+			if(data.contains("Items."+ID+".Price")){
+				price = data.getLong("Items."+ID+".Price");
 			}
 		}
 		return NumberFormat.getNumberInstance().format(price);

@@ -1,2 +1,17 @@
-Items: {}
-OutOfTime/Cancelled: {}
+WorldGroups:
+  towny:
+    Items: {}
+    worlds:
+    - towny_shops2
+    - towny2
+    - towny2_nether
+    - towny2_the_end
+    OutOfTime/Cancelled: {}
+  factions:
+    Items: {}
+    worlds:
+    - factions2_shops
+    - factions2
+    - factions2_nether
+    - factions2_the_end
+    OutOfTime/Cancelled: {}

@@ -1,7 +1,11 @@
 package me.badbones69.crazyauctions;
 
 import java.util.ArrayList;
+import java.util.Set;
 
+import jdk.nashorn.internal.runtime.regexp.joni.Config;
+import org.bukkit.World;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -16,33 +20,22 @@ public class CrazyAuctions {
 		}
 		return instance;
 	}
-	
-	public ArrayList<ItemStack> getItems(Player player){
-		FileConfiguration data = Main.settings.getData();
-		ArrayList<ItemStack> items = new ArrayList<ItemStack>();
-		if(data.contains("Items")){
-			for(String i : data.getConfigurationSection("Items").getKeys(false)){
-				if(data.getString("Items." + i + ".Seller").equalsIgnoreCase(player.getName())){
-					items.add(data.getItemStack("Items."+i+".Item").clone());
-				}
-			}
-		}
-		return items;
-	}
-	
+
 	public ArrayList<ItemStack> getItems(Player player, Shop type){
-		FileConfiguration data = Main.settings.getData();
 		ArrayList<ItemStack> items = new ArrayList<ItemStack>();
-		if(data.contains("Items")){
-			for(String i : data.getConfigurationSection("Items").getKeys(false)){
-				if(data.getString("Items." + i + ".Seller").equalsIgnoreCase(player.getName())){
-					if(data.getBoolean("Items." + i + ".Biddable")){
+		ConfigurationSection worldData = Main.settings.getWorldConfig(player.getWorld().getName());
+		if (worldData == null)
+			return items;
+		if(worldData.contains("Items")){
+			for(String i : worldData.getConfigurationSection("Items").getKeys(false)){
+				if(worldData.getString("Items." + i + ".Seller").equalsIgnoreCase(player.getName())){
+					if(worldData.getBoolean("Items." + i + ".Biddable")){
 						if(type == Shop.BID){
-							items.add(data.getItemStack("Items."+i+".Item").clone());
+							items.add(worldData.getItemStack("Items."+i+".Item").clone());
 						}
 					}else{
 						if(type == Shop.SELL){
-							items.add(data.getItemStack("Items."+i+".Item").clone());
+							items.add(worldData.getItemStack("Items."+i+".Item").clone());
 						}
 					}
 				}
