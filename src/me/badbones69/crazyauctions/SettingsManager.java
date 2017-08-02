@@ -4,11 +4,14 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -85,6 +88,22 @@ public class SettingsManager {
          	}
 		}
 		msg = YamlConfiguration.loadConfiguration(mfile);
+	}
+
+	public List<World> getWorldGroup(World world) {
+		List<World> worlds = new ArrayList<>();
+		ConfigurationSection worldData = this.getWorldConfig(world.getName());
+		if (worldData == null)
+			return worlds;
+		ConfigurationSection section = this.data.getConfigurationSection("WorldGroups")
+				.getConfigurationSection(worldData.getName());
+		for (String worldName : section.getStringList("worlds")) {
+			World w = Bukkit.getWorld(worldName);
+			if (w == null)
+				continue;
+			worlds.add(w);
+		}
+		return worlds;
 	}
 
 	public FileConfiguration getMsg() {

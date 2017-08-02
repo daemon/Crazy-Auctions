@@ -4,9 +4,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 
+import net.milkbowl.vault.item.Items;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
@@ -271,6 +273,15 @@ public class Main extends JavaPlugin implements Listener{
 							Methods.setItemInHand(player, new ItemStack(Material.AIR));
 						}else{
 							item.setAmount(item.getAmount()-amount);
+						}
+						StringBuilder builder = new StringBuilder();
+						builder.append(ChatColor.AQUA).append(player.getName()).append(ChatColor.GOLD).append(" is now auctioning ");
+						builder.append(ChatColor.LIGHT_PURPLE).append(amount).append(" ").append(Items.itemByStack(item).name);
+						builder.append(ChatColor.GOLD).append(" for ").append(ChatColor.LIGHT_PURPLE).append("$").append(price);
+						String message = builder.toString();
+						for (World world : Main.settings.getWorldGroup(player.getWorld())) {
+							for (Player p : world.getPlayers())
+								p.sendMessage(message);
 						}
 						return false;
 					}
