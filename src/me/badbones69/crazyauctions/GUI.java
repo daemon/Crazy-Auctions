@@ -493,10 +493,8 @@ public class GUI implements Listener{
 			return;
 		Player player = (Player) e.getWhoClicked();
 		ConfigurationSection data = Main.settings.getWorldConfig(player.getWorld().getName());
-		if (data == null) {
-			player.sendMessage(ChatColor.RED + "Auctions isn't enabled in this world!");
+		if (data == null)
 			return;
-		}
 		FileConfiguration msg = Main.settings.getMsg();
 		final Inventory inv = e.getInventory();
 		if(inv!=null){
